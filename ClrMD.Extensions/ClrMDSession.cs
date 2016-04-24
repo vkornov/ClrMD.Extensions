@@ -166,15 +166,13 @@ namespace ClrMD.Extensions
         {
             if (typeName.Contains("*"))
             {
-                string typeNameRegex = "^" + Regex.Escape(typeName).Replace("\\*", ".*") + "$";
-                Regex regex = new Regex(typeNameRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                var regex = new Regex($"^{Regex.Escape(typeName).Replace("\\*", ".*")}$",
+                    RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-                return AllObjects.Where(item => regex.IsMatch(item.Type.Name));
+                return AllObjects.Where(item => regex.IsMatch(item.TypeName));
             }
 
-            typeName = ObfuscateType(typeName);
-
-            return AllObjects.Where(item => item.Type.Name == typeName);
+            return AllObjects.Where(item => item.TypeName == typeName);
         }
 
         public void CreateReferenceMapping()
@@ -204,7 +202,7 @@ namespace ClrMD.Extensions
         public ITypeDeobfuscator GetTypeDeobfuscator(string typeName)
         {
             if (m_deobfuscator == null)
-                return new DummyTypeDeobfuscator(typeName);
+                return DummyTypeDeobfuscator.GetDeobfuscator(typeName);
 
             return m_deobfuscator.GetTypeDeobfuscator(typeName);
         }
@@ -212,7 +210,7 @@ namespace ClrMD.Extensions
         public ITypeDeobfuscator GetTypeDeobfuscator(ClrType type)
         {
             if (m_deobfuscator == null)
-                return new DummyTypeDeobfuscator(type.Name);
+                return DummyTypeDeobfuscator.GetDeobfuscator(type.Name);
 
             return m_deobfuscator.GetTypeDeobfuscator(type);
         }

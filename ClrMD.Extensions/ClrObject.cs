@@ -127,7 +127,7 @@ namespace ClrMD.Extensions
             IsInterior = isInterior;
 
             if (ClrMDSession.Current == null)
-                m_deobfuscator = new DummyTypeDeobfuscator(type.Name);
+                m_deobfuscator = DummyTypeDeobfuscator.GetDeobfuscator(type.Name);
             else
                 m_deobfuscator = ClrMDSession.Current.GetTypeDeobfuscator(type);
 
@@ -601,6 +601,9 @@ namespace ClrMD.Extensions
 
             public static object GetSimpleValue(ClrObject obj)
             {
+                if (obj.IsNull())
+                    return null;
+
                 ClrType type = obj.Type;
                 ClrHeap heap = type.Heap;
 
@@ -837,11 +840,11 @@ namespace ClrMD.Extensions
 
         public IEnumerable<object> GetValues()
         {
-            if (HasSimpleValue)
+            if (!IsNull() && HasSimpleValue)
             {
                 yield return SimpleValue;
             }
-            else if (Type.IsArray)
+            else if (!IsNull() && Type.IsArray)
             {
                 yield return m_deobfuscator.OriginalName;
                 yield return GetAddressString();
@@ -862,7 +865,7 @@ namespace ClrMD.Extensions
                     foreach (ClrInstanceField field in Type.Fields)
                     {
                         if (LinqPadExtensions.SmartNavigation)
-                            yield return this[field].HasSimpleValue ? this[field].SimpleValue : this[field];
+                            yield return (!this[field].IsNull() && this[field].HasSimpleValue) ? this[field].SimpleValue : this[field];
                         else
                             yield return this[field].ToString();
                     }
